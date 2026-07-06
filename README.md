@@ -1,49 +1,52 @@
-Role Name
-=========
+# apigee-opdk-setup-postgres-add — Add a Postgres Datastore to an Apigee OPDK Analytics Group
 
-A brief description of the role goes here.
+> **An Ansible role that registers a Postgres master/standby pair as a datastore in an Apigee analytics consumer group** — the datastore step in the analytics topology lifecycle: `axgroup → consumer-group → {consumers (qpid), datastores (postgres master,standby)}`.
 
-Requirements
-------------
+> [!NOTE]
+> Engineering portfolio note — this role is part of the analytics-topology lifecycle. See the [skills assessment →](SKILLS-ASSESSMENT.md) for the expertise applied.
 
-Any pre-requisites that may not be covered by Ansible itself or the role should be mentioned here. For instance, if the role uses the EC2 module, it may be a good idea to mention in this section that the boto package is required.
+This role adds a Postgres master/standby pair as a datastore to an existing axgroup and its consumer group. It is composed after `apigee-opdk-setup-analytics-group-add` (axgroup creation) and `apigee-opdk-setup-qpid-add` (consumer addition), and before `apigee-opdk-setup-scopes-add` (scope binding). See the [`apigee-edge-opdk`](https://github.com/carlosfrias/apigee-edge-opdk) framework for composition playbooks.
 
-Role Variables
---------------
-
-A description of the settable variables for this role should go here, including any variables that are in defaults/main.yml, vars/main.yml, and any variables that can/should be set via parameters to the role. Any variables that are read from other roles and/or the global scope (ie. hostvars, group vars, etc.) should be mentioned here as well.
-
-Dependencies
-------------
-
-A list of other roles hosted on Galaxy should go here, plus any details in regards to parameters that may need to be set for other roles, or variables that are used from other roles.
-
-Example Playbook
-----------------
-
-Including an example of how to use your role (for instance, with variables passed in as parameters) is always nice for users too:
-
-    - hosts: servers
-      roles:
-         - { role: username.rolename, x: 42 }
-
-License
--------
-
-BSD
-
-Author Information
-------------------
-
-An optional section for the role authors to include contact information, or a website (HTML is not allowed).
 <!-- BEGIN Google Required Disclaimer -->
 
-# Not Google Product Clause
+## Not Google Product Clause
 
 This is not an officially supported Google product.
 <!-- END Google Required Disclaimer -->
-<!-- BEGIN Google How To Contribute -->
-# How to Contribute
 
-We'd love to accept your patches and contributions to this project. Please review our [guidelines](CONTRIBUTING.md).
-<!-- END Google How To Contribute -->
+---
+
+## What the role actually does
+
+`tasks/main.yml`:
+
+1. **Resolve master/standby UUIDs** — reads `edge_ps_self.uUID` from the `pgmaster` and `pgstandby` inventory groups via `hostvars`.
+2. **Construct the master,standby UUID pair** — concatenates master and standby UUIDs for the datastore registration (Apigee expects `uuid1,uuid2` format for the HA pair).
+3. **Assert required attributes** — `ax_group`, `consumer_group`, `server_type`, `master_uuid`, `standby_uuid`, credentials.
+4. **Register the Postgres server** — `POST /v1/analytics/groups/ax/{ax_group}/servers?uuid={master,standby}&type={server_type}&force=true`.
+5. **Add Postgres to the consumer group as a datastore** — `POST /v1/analytics/groups/ax/{ax_group}/consumer-groups/{consumer_group}/datastores?uuid={master,standby}`.
+
+---
+
+## Role variables (selected)
+
+| Variable | Purpose |
+|----------|---------|
+| `ax_group` | The analytics group name |
+| `consumer_group` | The consumer group name |
+| `pgmaster_group_name` | Inventory group name for the Postgres master (default: `pgmaster`) |
+| `pgstandby_group_name` | Inventory group name for the Postgres standby (default: `pgstandby`) |
+| `local_mgmt_ip` | Management Server IP |
+| `opdk_user_email` / `opdk_user_pass` | MS API credentials |
+
+---
+
+## Provenance
+
+Authored and maintained by **Carlos Frias** during his tenure on Apigee Edge Private Cloud. One of the analytics-topology roles in the `apigee-opdk-*` corpus.
+
+Contributions welcome — see [CONTRIBUTING.md](./CONTRIBUTING.md).
+
+## License
+
+See [LICENSE](./LICENSE).
