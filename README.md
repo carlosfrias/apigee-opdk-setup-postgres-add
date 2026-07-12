@@ -1,5 +1,8 @@
 # apigee-opdk-setup-postgres-add — Add a Postgres Datastore to an Apigee OPDK Analytics Group
 
+> 🔄 **Evolution note:** The automation approach from this OPDK-era role has been consolidated into the `apigee-hybrid-workspace` Ansible collection. See the successor capability in the portfolio hub: [`carlosfrias/apigee-hybrid-workspace`](https://github.com/carlosfrias/apigee-hybrid-workspace) → `bap_coe/private_cloud/` and `bap_coe/apigee_hybrid/`. The collection README explains each role group’s business value and production context.
+
+
 > **An Ansible role that registers a Postgres master/standby pair as a datastore in an Apigee analytics consumer group** — the datastore step in the analytics topology lifecycle: `axgroup → consumer-group → {consumers (qpid), datastores (postgres master,standby)}`.
 
 > [!NOTE]
